@@ -1,0 +1,717 @@
+/* =============================================================================
+   YEAR TWO — SCRAPBOOK STYLES
+   -----------------------------------------------------------------------------
+   Layout map:
+     body
+       .ambient            drifting marks in the white space
+       .topbar             title + layout toggle
+       .stage              [ nav ‹ ]  .book-wrap  [ nav › ]
+         .book-wrap
+           .book           the 3D book; holds .leaf elements
+             .leaf         one physical sheet of paper (front + back face)
+               .leaf-face  one printed side -> contains a .page
+           .book-shadow    soft contact shadow
+       .footbar            hint + "spread 3 of 12"
+       .lightbox           the pop-out photo + note
+
+   COLOUR + FONT: every token in :root below can be overridden from the
+   `theme` block in photos.js — this file just holds the defaults.
+   ============================================================================= */
+
+/* ---- Design tokens -------------------------------------------------------- */
+:root {
+  /* The page size is derived from the viewport so the book always fits.      */
+  --page-h: min(72vh, 580px);
+  --page-w: min(calc(var(--page-h) * 0.74), 44vw);
+  --book-w: calc(var(--page-w) * 2);
+
+  /* Palette — cool blue-grey, sleek. Overridable from photos.js `theme`.      */
+  --white:       #ffffff;
+  --paper:       #e9edf1;
+  --paper-edge:  #d7dde4;
+  --paper-shade: #c4ccd6;
+  --ink:         #2b333d;
+  --ink-soft:    #6b7785;
+  --accent:      #6f8ca8;
+  --accent-deep: #4f6d8c;
+  --cover-from:  #3f4f60;
+  --cover-to:    #252e38;
+  --heart:       #9fb2c4;
+
+  /* One cool shadow colour, used at varying alpha everywhere. */
+  --shadow-rgb:  34, 45, 61;
+
+  /* Fonts — overridable from photos.js `theme`. */
+  --font-heading: "Fraunces", "Playfair Display", Georgia, serif;
+  --font-body:    "Cormorant Garamond", Georgia, "Times New Roman", serif;
+
+  /* Motion. One easing curve everywhere keeps the whole thing feeling like
+     a single animated object. */
+  --flip-ease:  cubic-bezier(0.33, 0.10, 0.28, 1);
+  --flip-time:  0.95s;
+  --soft-ease:  cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--ink);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;            /* the page itself never scrolls */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================================
+   AMBIENT — drifting marks
+   ============================================================================= */
+.ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.heart {
+  position: absolute;
+  font-size: 1.4rem;
+  color: var(--heart);
+  opacity: 0;
+  animation: drift linear infinite;
+  will-change: transform, opacity;
+}
+@keyframes drift {
+  0%   { transform: translateY(8vh) scale(0.6) rotate(0deg);   opacity: 0; }
+  12%  { opacity: 0.14; }
+  88%  { opacity: 0.14; }
+  100% { transform: translateY(-92vh) scale(1) rotate(28deg);  opacity: 0; }
+}
+
+/* =============================================================================
+   TOP BAR
+   ============================================================================= */
+.topbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem clamp(1rem, 4vw, 2.75rem) 0.5rem;
+  flex: 0 0 auto;
+}
+.brand {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.controls { display: flex; gap: 0.6rem; }
+
+.ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.95rem;
+  background: var(--white);
+  border: 1px solid var(--paper-shade);
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: transform 0.25s var(--soft-ease),
+              box-shadow 0.25s var(--soft-ease),
+              color 0.25s var(--soft-ease);
+}
+.ctrl:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(var(--shadow-rgb), 0.16);
+  color: var(--ink);
+}
+.ctrl:active { transform: translateY(0); }
+.ctrl-glyph { font-size: 1.05rem; color: var(--accent-deep); }
+
+/* =============================================================================
+   STAGE + NAV ARROWS
+   ============================================================================= */
+.stage {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 3vw, 2.5rem);
+  padding: 0.5rem 1rem;
+  min-height: 0;
+}
+
+.nav {
+  flex: 0 0 auto;
+  width: clamp(44px, 5vw, 60px);
+  height: clamp(44px, 5vw, 60px);
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  color: var(--ink-soft);
+  background: var(--white);
+  border: 1px solid var(--paper-shade);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s var(--soft-ease),
+              box-shadow 0.3s var(--soft-ease),
+              color 0.3s var(--soft-ease),
+              opacity 0.3s var(--soft-ease);
+}
+.nav span { line-height: 1; margin-top: -0.15em; }
+.nav:hover {
+  color: var(--ink);
+  box-shadow: 0 8px 22px rgba(var(--shadow-rgb), 0.18);
+}
+.nav--prev:hover { transform: translateX(-3px) scale(1.04); }
+.nav--next:hover { transform: translateX(3px)  scale(1.04); }
+.nav:disabled {
+  opacity: 0.28;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+/* =============================================================================
+   THE BOOK
+   -----------------------------------------------------------------------------
+   .book is the full open spread (two pages wide). The spine sits at its
+   horizontal centre. Every .leaf is pinned to the RIGHT half and rotates
+   around its left edge (the spine). When the book is "closed" we slide the
+   whole thing sideways so the single visible page looks centred.
+   ============================================================================= */
+.book-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--book-w);
+  height: var(--page-h);
+  /* perspective makes the rotateY on leaves read as real depth */
+  perspective: 2400px;
+  perspective-origin: 50% 42%;
+  /* a gentle settle-in on first load */
+  animation: bookIn 1s var(--flip-ease) both;
+}
+@keyframes bookIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.book {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  /* slide-to-centre when the book is closed */
+  transition: transform var(--flip-time) var(--flip-ease);
+}
+.book--closed-front { transform: translateX(calc(var(--page-w) / -2)); }
+.book--closed-back  { transform: translateX(calc(var(--page-w) /  2)); }
+
+/* Stacked-paper edges — only visible when the book is closed, giving it bulk. */
+.book-edge {
+  position: absolute;
+  background: repeating-linear-gradient(
+    var(--paper-edge), var(--paper-edge) 1px,
+    var(--paper-shade) 1px, var(--paper-shade) 2px
+  );
+  opacity: 0;
+  transition: opacity 0.5s var(--soft-ease);
+  border-radius: 2px;
+}
+.book-edge--right {
+  width: 10px;
+  top: 6px; bottom: 6px;
+  right: calc(var(--page-w) / 2 - 9px);
+}
+.book-edge--bottom {
+  height: 8px;
+  left: calc(var(--page-w) / 2 + 4px);
+  right: calc(var(--page-w) / 2 - 6px);
+  bottom: -6px;
+}
+.book--closed-front .book-edge,
+.book--closed-back  .book-edge { opacity: 0.9; }
+.book--closed-back .book-edge--right { right: auto; left: calc(var(--page-w) / 2 - 9px); }
+.book--closed-back .book-edge--bottom {
+  left: calc(var(--page-w) / 2 - 6px);
+  right: calc(var(--page-w) / 2 + 4px);
+}
+
+/* Soft contact shadow on the white floor. */
+.book-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  width: 86%;
+  height: 46px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--shadow-rgb), 0.30) 0%,
+    rgba(var(--shadow-rgb), 0.11) 45%,
+    transparent 72%
+  );
+  filter: blur(3px);
+  transition: width 0.6s var(--flip-ease), opacity 0.6s var(--soft-ease);
+}
+.book--closed-front .book-shadow,
+.book--closed-back  .book-shadow { width: 48%; }
+
+/* ---- A leaf (one sheet of paper) ----------------------------------------- */
+.leaf {
+  position: absolute;
+  top: 0;
+  left: 50%;                       /* pinned to the spine */
+  width: var(--page-w);
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;   /* hinge on the spine */
+  transition: transform var(--flip-time) var(--flip-ease);
+  will-change: transform;
+}
+.leaf.flipped { transform: rotateY(-180deg); }
+
+/* when the book is rebuilt (layout toggle) we re-apply state with no animation */
+.book--rebuilding,
+.book--rebuilding .leaf { transition: none !important; }
+
+/* The two printed sides of a sheet. */
+.leaf-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border-radius: 3px 8px 8px 3px;  /* rounded on the outer edge */
+}
+.leaf-back {
+  transform: rotateY(180deg);
+  border-radius: 8px 3px 3px 8px;  /* it's a left-hand page */
+}
+
+/* While a leaf is being dragged we kill the transition for 1:1 tracking. */
+.leaf.dragging { transition: none; }
+
+/* A faint gradient near the spine on every face — fakes the page curving
+   into the gutter. Direction depends on which side of the spine it's on. */
+.leaf-face::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 14%;
+  pointer-events: none;
+  z-index: 4;
+}
+.leaf-front::after {
+  left: 0;
+  background: linear-gradient(to right, rgba(var(--shadow-rgb), 0.18), transparent);
+}
+.leaf-back::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(var(--shadow-rgb), 0.18), transparent);
+}
+
+/* A travelling sheen that sweeps the leaf mid-flip (added by JS as .turning). */
+.leaf-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.55) 50%, transparent 60%);
+  opacity: 0;
+}
+.leaf.turning .leaf-face::before {
+  animation: sheen var(--flip-time) var(--flip-ease);
+}
+@keyframes sheen {
+  0%   { opacity: 0;   transform: translateX(-30%); }
+  35%  { opacity: 0.7; }
+  100% { opacity: 0;   transform: translateX(30%); }
+}
+
+/* =============================================================================
+   PAGES — the actual content printed on a leaf face
+   ============================================================================= */
+.page {
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  /* layered paper texture: cool highlight + a whisper of fibre noise */
+  background-image:
+    radial-gradient(ellipse at 50% 0%,   rgba(255,255,255,0.7), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(var(--shadow-rgb), 0.10), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(var(--shadow-rgb), 0.028) 0 2px, transparent 2px 4px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1rem, 2.4vw, 1.9rem);
+  overflow: hidden;
+}
+/* left-hand pages get their gutter shadow on the right instead */
+.leaf-back .page  { box-shadow: inset 10px 0 22px -16px rgba(var(--shadow-rgb), 0.55); }
+.leaf-front .page { box-shadow: inset -10px 0 22px -16px rgba(var(--shadow-rgb), 0.55); }
+
+.page-number {
+  position: absolute;
+  bottom: 0.7rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  opacity: 0.65;
+}
+.leaf-front .page-number { right: 1.2rem; }
+.leaf-back  .page-number { left: 1.2rem; }
+
+/* ---- Photo grid on a page ------------------------------------------------ */
+.page-grid {
+  flex: 1 1 auto;
+  display: grid;
+  gap: clamp(0.6rem, 1.6vw, 1.1rem);
+  min-height: 0;
+}
+.page-grid.is-single { grid-template: 1fr / 1fr; }
+.page-grid.is-quad   { grid-template: 1fr 1fr / 1fr 1fr; }
+
+/* A single photo, tucked onto the page. */
+.photo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  padding: 0.5rem 0.5rem 0.35rem;
+  border-radius: 2px;
+  box-shadow: 0 3px 10px rgba(var(--shadow-rgb), 0.20),
+              0 1px 2px  rgba(var(--shadow-rgb), 0.14);
+  cursor: pointer;
+  min-height: 0;
+  transition: transform 0.35s var(--soft-ease),
+              box-shadow 0.35s var(--soft-ease);
+}
+/* gently scattered so the page feels handmade, not laid out by a machine */
+.photo:nth-child(1) { transform: rotate(-1.4deg); }
+.photo:nth-child(2) { transform: rotate(1.1deg);  }
+.photo:nth-child(3) { transform: rotate(0.8deg);  }
+.photo:nth-child(4) { transform: rotate(-0.9deg); }
+.page-grid.is-single .photo { transform: rotate(-0.8deg); }
+
+.photo:hover {
+  transform: rotate(0deg) translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 34px rgba(var(--shadow-rgb), 0.30),
+              0 3px 8px  rgba(var(--shadow-rgb), 0.20);
+  z-index: 3;
+}
+.photo:active { transform: rotate(0deg) translateY(-2px) scale(1.0); }
+
+/* a tiny piece of "tape" on the corner */
+.photo::before {
+  content: "";
+  position: absolute;
+  top: -9px; left: 50%;
+  width: 46px; height: 18px;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgba(159, 178, 196, 0.5);
+  box-shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.18);
+}
+
+.photo-img-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--paper-shade);
+}
+.photo-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s var(--soft-ease);
+}
+.photo:hover .photo-img-wrap img { transform: scale(1.05); }
+
+.photo-caption {
+  flex: 0 0 auto;
+  text-align: center;
+  padding-top: 0.4rem;
+  font-size: clamp(0.82rem, 1.5vw, 1.05rem);
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+.page-grid.is-quad .photo-caption { font-size: clamp(0.7rem, 1.2vw, 0.9rem); }
+
+/* =============================================================================
+   SPECIAL PAGES — cover, dedication, closing, back cover, blanks
+   ============================================================================= */
+.page--cover,
+.page--back {
+  background:
+    radial-gradient(ellipse at 32% 22%, rgba(255,255,255,0.12), transparent 55%),
+    linear-gradient(155deg, var(--cover-from), var(--cover-to));
+  color: #e8edf2;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  box-shadow:
+    inset 0 0 70px rgba(0,0,0,0.40),
+    inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+/* when photos.js supplies a cover image, JS sets the background-image inline
+   (a dark wash + the photo); this just makes it sit correctly */
+.page--cover.has-image,
+.page--back.has-image {
+  background-size: cover;
+  background-position: center;
+}
+/* thin frame line on the covers */
+.page--cover::before,
+.page--back::before {
+  content: "";
+  position: absolute;
+  inset: clamp(14px, 3vw, 26px);
+  border: 1px solid rgba(232, 237, 242, 0.45);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.cover-flourish {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: #aebfce;
+  letter-spacing: 0.3em;
+  margin-bottom: 0.4rem;
+}
+.cover-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: clamp(2.4rem, 7vw, 4.4rem);
+  line-height: 1.05;
+  color: #eef2f6;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.45);
+}
+.cover-subtitle {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.6vw, 1.7rem);
+  color: #9fb4c6;
+  margin-top: 0.35rem;
+}
+.cover-year {
+  margin-top: 1.6rem;
+  font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+  letter-spacing: 0.28em;
+  color: rgba(232, 237, 242, 0.62);
+}
+.cover-open-hint {
+  position: absolute;
+  bottom: clamp(28px, 6vw, 48px);
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  color: rgba(232, 237, 242, 0.5);
+  animation: pulse 2.6s var(--soft-ease) infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.85; } }
+
+.page--back .cover-title { font-size: clamp(1.6rem, 4vw, 2.4rem); }
+
+/* dedication + closing text pages */
+.page--note {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.note-mark {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+.note-body {
+  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
+  font-style: italic;
+  line-height: 1.7;
+  color: var(--ink);
+  max-width: 30ch;
+}
+.note-sign {
+  margin-top: 1.5rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--accent-deep);
+}
+
+/* =============================================================================
+   LIGHTBOX — the pop-out photo + note
+   ============================================================================= */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.4rem, 2vw, 1.5rem);
+  padding: clamp(1rem, 4vw, 3rem);
+}
+.lightbox[hidden] { display: none; }
+
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 26, 33, 0.66);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  opacity: 0;
+  transition: opacity 0.4s var(--soft-ease);
+}
+.lightbox.is-open .lightbox-backdrop { opacity: 1; }
+
+.lightbox-frame {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  max-width: min(1000px, 92vw);
+  max-height: 86vh;
+  background: var(--paper);
+  border-radius: 4px;
+  padding: clamp(0.7rem, 1.6vw, 1.1rem);
+  box-shadow: 0 40px 90px rgba(0,0,0,0.5);
+  /* the "pop" animation */
+  opacity: 0;
+  transform: scale(0.86) translateY(14px);
+  transition: opacity 0.42s var(--soft-ease),
+              transform 0.42s cubic-bezier(0.2, 0.9, 0.25, 1.2);
+}
+.lightbox.is-open .lightbox-frame {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.lightbox-photo {
+  flex: 1 1 auto;
+  display: flex;
+  background: #fff;
+  padding: 0.6rem;
+  box-shadow: 0 4px 14px rgba(var(--shadow-rgb), 0.28);
+  min-width: 0;
+}
+.lightbox-photo img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(86vh - 2.5rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  margin: auto;
+  transition: opacity 0.3s var(--soft-ease);
+}
+
+.lightbox-note {
+  flex: 0 0 clamp(200px, 24vw, 290px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1rem, 2.4vw, 2rem);
+}
+.lightbox-date {
+  font-family: var(--font-heading);
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+  color: var(--ink);
+}
+.lightbox-rule {
+  width: 42px;
+  height: 2px;
+  background: var(--accent);
+  margin: 0.8rem 0 1rem;
+}
+.lightbox-text {
+  font-size: clamp(1rem, 1.9vw, 1.2rem);
+  font-style: italic;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.lightbox-count {
+  margin-top: auto;
+  padding-top: 1.2rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -16px; right: -16px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  transition: transform 0.25s var(--soft-ease);
+}
+.lightbox-close:hover { transform: rotate(90deg) scale(1.08); }
+
+.lightbox-nav {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  width: clamp(44px, 5vw, 56px);
+  height: clamp(44px, 5vw, 56px);
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  color: var(--ink);
+  font-size: 1.8rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.25s var(--soft-ease), background 0.25s var(--soft-ease);
+}
+.lightbox-nav span { margin-top: -0.15em; }
+.lightbox-nav:hover { background: #fff; transform: scale(1.08); }
+
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+@media (max-width: 720px) {
+  :root {
+    --page-h: min(58vh, 460px);
+    --page-w: min(calc(var(--page-h) * 0.74), 46vw);
+  }
+  .topbar { padding-top: 0.8rem; }
+  .ctrl-label { display: none; }
+  .ctrl { padding: 0.5rem 0.7rem; }
+  .stage { gap: 0.25rem; }
+
+  .lightbox-frame { flex-direction: column; max-height: 88vh; overflow: auto; }
+  .lightbox-photo img { max-height: 50vh; }
+  .lightbox-note { flex-basis: auto; }
+  /* keep the close button inside the frame so `overflow:auto` can't clip it */
+  .lightbox-close { top: 8px; right: 8px; }
+  .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); }
+  .lightbox-nav--prev { left: 6px; }
+  .lightbox-nav--next { right: 6px; }
+}
+
+/* Respect users who prefer less motion — keep it usable, drop the flourish. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --flip-time: 0.35s; }
+  .heart { display: none; }
+  .leaf.turning .leaf-face::before { animation: none; }
+  .cover-open-hint { animation: none; }
+  .photo:hover { transform: translateY(-4px); }
+}

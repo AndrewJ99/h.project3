@@ -331,7 +331,7 @@
         : (CONFIG.dedication || "Here is the year we just lived.");
       node.appendChild(el("p", "note-body", text));
       node.appendChild(el("p", "note-sign",
-        page.variant === "closing" ? "&#8212; always, me" : "&#8212; turn the page &#8594;"));
+        page.variant === "closing" ? "&#8212; andoy" : "&#8212; andoy &#8594;"));
 
     } else if (page.type === "photos") {
       node = el("div", "page");

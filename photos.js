@@ -30,15 +30,13 @@ window.SCRAPBOOK_CONFIG = {
 
   // Shown on the first inside page, right after the cover.
   dedication:
-    "One year. A thousand small, ordinary days — and every single one better " +
-    "because you were in it. This is the whole of our second year together, " +
-    "start to finish. Turn the page, love.",
+    "Happy Anniversary Brianna Pham Do, I love living life with you. " +
+    "To many more days together in the future, " +
+    "thank you for being my best friend.",
 
   // Shown on the final inside page, right before the back cover.
   closing:
-    "Two years behind us, and the third already begun. Whatever this next " +
-    "year holds, I want to spend it the same way: with you, a camera, and a " +
-    "reason to make one of these again. Happy anniversary.",
+    "You seriously make life worth living. Happy Anniversary",
 
   /* ---- THE LOOK ------------------------------------------------------------
      A photo behind the cover (and back cover) — optional. Put the file in
@@ -89,41 +87,41 @@ window.SCRAPBOOK_CONFIG = {
      a single photo. */
   photos: [
     // ---- May ----
-    { file: "05-18A.JPG", note: "" },
-    { file: "05-19A.JPG", note: "" },
+    { file: "05-18A.JPG", note: "Our 2nd Anniversary date! JOSHUA TREE. The best part was exploring the caves with you :)" },
+    { file: "05-19A.JPG", note: ":)" },
     // ---- July ----
-    { file: "07-27A.JPG", note: "" },
+    { file: "07-27A.JPG", note: "u so silly i love u" },
     // ---- August ----
-    { file: "08-02A.JPG", note: "" },
+    { file: "08-02A.JPG", note: "The Getty Date Day!" },
     { file: "08-02B.JPG", note: "" },
-    { file: "08-10A.JPG", note: "" },
-    { file: "08-13A.JPG", note: "" },
-    { file: "08-22A.JPG", note: "" },
-    { file: "08-23A.JPG", note: "" },   // there's also an 08-23A.HEIC — JPG preferred
-    { file: "08-23B.JPG", note: "" },
-    { file: "08-23D.JPG", note: "" },
+    { file: "08-10A.JPG", note: "Corrina's Bday Tea party, ngl those egg sandwiches were the best" },
+    { file: "08-13A.JPG", note: "Quick sushi break, during my work at pacsun! pc: cyn" },
+    { file: "08-22A.JPG", note: "VEGAS" },
+    { file: "08-23A.JPG", note: "Our lil italy moment" },   // there's also an 08-23A.HEIC — JPG preferred
+    { file: "08-23B.JPG", note: "peace" },
+    { file: "08-23D.JPG", note: "honestly we look good together" },
     { file: "08-23F.JPG", note: "" },
-    { file: "08-23G.JPG", note: "" },
+    { file: "08-23G.JPG", note: "still vegas, more mirror pics" },
     // ---- September ----
     { file: "09-26A.JPG", note: "" },
     // ---- November ----
-    { file: "11-01A.JPG", note: "" },
-    { file: "11-09A.JPG", note: "" },
+    { file: "11-01A.JPG", note: "HALLOWEEN PARTY featuring JIME" },
+    { file: "11-09A.JPG", note: "our very performative date day, i love you" },
     // ---- December ----
-    { file: "12-07A.JPG", note: "" },
-    { file: "12-24A.JPG", note: "" },   // there's also a 12-24A.HEIC — JPG preferred
+    { file: "12-07A.JPG", note: "jarmin fam pics, u look like a lil hamster" },
+    { file: "12-24A.JPG", note: "pham fam party" },   // there's also a 12-24A.HEIC — JPG preferred
     // ---- January (next calendar year) ----
-    { file: "01-01A.JPG", note: "" },
+    { file: "01-01A.JPG", note: "new years with you again :) always the best" },
     // ---- February ----
-    { file: "02-14A.JPG", note: "" },
+    { file: "02-14A.JPG", note: "v day" },
     { file: "02-14B.JPG", note: "" },
     { file: "02-14C.JPG", note: "" },
-    { file: "02-15A.JPG", note: "" },
-    { file: "02-26A.JPG", note: "" },
+    { file: "02-15A.JPG", note: "TET day" },
+    { file: "02-26A.JPG", note: "vday gift to u :)" },
     { file: "02-28B.JPG", note: "" },
-    { file: "02-28D.JPG", note: "" },
+    { file: "02-28D.JPG", note: "you're so beautiful" },
     // ---- March ----
-    { file: "03-15A.JPG", note: "" },
+    { file: "03-15A.JPG", note: "BDAY DATE" },
     { file: "03-15B.JPG", note: "" },
     { file: "03-15G.JPG", note: "" },
     { file: "03-15H.JPG", note: "" },

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check script.js)",
+      "Bash(node --check photos.js)",
+      "Bash(grep -iE '\\\\.\\(heic|jpg\\)$')",
+      "Bash(awk '{print \"  \"$5\"  \"$NF}')",
+      "Bash(node --check /Users/andrewjarmin/Desktop/Projects/3yearScrapbook/photos.js)",
+      "Bash(node --check /Users/andrewjarmin/Desktop/Projects/3yearScrapbook/script.js)",
+      "Bash(chmod +x build-thumbs.sh)",
+      "Bash(./build-thumbs.sh)",
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Bash(git ls-remote *)"
+    ]
+  }
+}

@@ -20,8 +20,14 @@
      ------------------------------------------------------------------------- */
   var CONFIG = window.SCRAPBOOK_CONFIG || {};
   var IMG_DIR = "images/";
+  var THUMB_DIR = "images/thumbs/";
   var BASE_FLIP = 0.95;            // seconds — must match --flip-time in CSS
   var DRAG_COMMIT = 0.4;           // how far you must drag (0–1) to turn a page
+  // Phones run out of texture memory fast, so we keep fewer leaves "live"
+  // on small screens. The lightbox still gets the full-size image either way.
+  var IS_MOBILE = window.matchMedia
+    && window.matchMedia("(max-width: 720px)").matches;
+  var WINDOW_SIZE = IS_MOBILE ? 1 : 2;
 
   var $ = function (id) { return document.getElementById(id); };
   var clamp = function (n, lo, hi) { return Math.max(lo, Math.min(hi, n)); };
@@ -263,19 +269,23 @@
     img.draggable = false;
     img.loading = "lazy";
     // swap to a placeholder if the file is missing — but only once
+    // error chain: thumb missing -> try the full-size -> fall back to placeholder
     img.onerror = function () {
+      var s = img.src || "";
+      if (s.indexOf("/thumbs/") !== -1 && !img.dataset.triedFull) {
+        img.dataset.triedFull = "1";
+        img.src = photo.src;
+        return;
+      }
       if (img.dataset.fallback) return;
       img.dataset.fallback = "1";
       img.src = placeholder(photo.shortLabel);
     };
-    if (isHeic(photo.file)) {
-      // show the placeholder while we decode in the background
-      img.src = placeholder(photo.shortLabel);
-      getDisplaySrc(photo).then(function (src) { img.src = src; })
-                          .catch(function () { /* placeholder stays */ });
-    } else {
-      img.src = photo.src;
-    }
+    img.decoding = "async";
+    img._photo = photo;
+    // src is left empty here on purpose — hydrateImg() sets it later, only
+    // when this leaf is in the active window. That way far-off pages don't
+    // download + decode dozens of multi-megabyte JPEGs up front.
     wrap.appendChild(img);
 
     var cap = el("div", "photo-caption", isQuad ? photo.shortLabel : photo.longLabel);
@@ -422,6 +432,7 @@
     navNext.disabled = state.flipped === leafCount;
 
     updateIndicator();
+    updateWindow();
   }
 
   function visiblePhotosOn(pageIndex) {
@@ -456,6 +467,48 @@
     if (hasInteracted) return;
     hasInteracted = true;
     if (hintEl) hintEl.style.opacity = "0";
+  }
+
+  /* ---------------------------------------------------------------------------
+     6b. Hydration window — only the leaves near the current spread are kept
+         "live". Far-off leaves are hidden from rendering, and their <img>s
+         don't get a `src` until the leaf comes into the window. This keeps
+         decoded-image memory bounded and the compositor cheap.
+     ------------------------------------------------------------------------- */
+  function hydrateImg(img) {
+    if (img._hydrated) return;
+    var photo = img._photo;
+    if (!photo) return;
+    img._hydrated = true;
+
+    if (isHeic(photo.file)) {
+      // show the soft placeholder while the HEIC decodes in the background
+      img.src = placeholder(photo.shortLabel);
+      getDisplaySrc(photo).then(function (src) { img.src = src; })
+                          .catch(function () { /* placeholder stays */ });
+    } else {
+      // try the small thumbnail first; img.onerror falls back to the full-size
+      // version (and then to a placeholder) if either is missing
+      img.src = THUMB_DIR + photo.file;
+    }
+  }
+
+  function hydrateLeaf(lf) {
+    var imgs = lf.el.getElementsByTagName("img");
+    for (var i = 0; i < imgs.length; i++) hydrateImg(imgs[i]);
+  }
+
+  // Mark every leaf as visible or hidden based on distance from state.flipped.
+  // `visibility: hidden` means the browser skips paint/composite for that leaf
+  // entirely — the geometry stays in the layout tree so 3D stacking is intact.
+  function updateWindow() {
+    if (!leaves.length) return;
+    for (var i = 0; i < leaves.length; i++) {
+      var lf = leaves[i];
+      var inWindow = Math.abs(i - state.flipped) <= WINDOW_SIZE;
+      lf.el.style.visibility = inWindow ? "" : "hidden";
+      if (inWindow) hydrateLeaf(lf);
+    }
   }
 
   /* ---------------------------------------------------------------------------
@@ -693,7 +746,7 @@
     }
 
     lbDate.textContent  = p.date ? p.longLabel : (p.longLabel || "Undated");
-    lbText.textContent  = p.note || "No note on this one — just a moment worth keeping.";
+    lbText.textContent  = p.note || "";
     lbCount.textContent = "photo " + (i + 1) + " of " + photos.length;
   }
 
@@ -735,12 +788,43 @@
 
   function toggleLayout() {
     if (animatingLeaf || drag.active) return;
+
+    // Page-index doesn't translate between the two layouts — quad has roughly
+    // a quarter as many leaves. So instead of preserving state.flipped, we
+    // anchor on a photo from the current spread and look it up after rebuild.
+    var wasAtStart  = state.flipped === 0;
+    var wasAtEnd    = state.flipped === leafCount;
+    var anchorFile  = null;
+    if (!wasAtStart && !wasAtEnd) {
+      var shown = visiblePhotosOn(2 * state.flipped - 1)
+                    .concat(visiblePhotosOn(2 * state.flipped));
+      if (shown.length) anchorFile = shown[0].file;
+    }
+
     layout = (layout === "single") ? "quad" : "single";
     syncLayoutButton();
-
-    var keep = state.flipped;
     buildBook();
-    state.flipped = clamp(keep, 0, leafCount);   // stay roughly where we were
+
+    // Decide where to land in the new layout.
+    var target = 0;
+    if (wasAtEnd) {
+      target = leafCount;
+    } else if (anchorFile) {
+      for (var p = 0; p < pages.length; p++) {
+        var pg = pages[p];
+        if (pg.type !== "photos") continue;
+        var hit = false;
+        for (var k = 0; k < pg.items.length; k++) {
+          if (pg.items[k].file === anchorFile) { hit = true; break; }
+        }
+        if (hit) {
+          // page index p sits on leaf floor((p+1)/2) when made the visible spread
+          target = Math.floor((p + 1) / 2);
+          break;
+        }
+      }
+    }
+    state.flipped = clamp(target, 0, leafCount);
     animatingLeaf = null;
 
     // apply the new state instantly — we don't want every prior leaf to

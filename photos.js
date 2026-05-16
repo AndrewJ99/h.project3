@@ -96,19 +96,18 @@ window.SCRAPBOOK_CONFIG = {
     // ---- August ----
     { file: "08-02A.JPG", note: "" },
     { file: "08-02B.JPG", note: "" },
-    { file: "08-10A.HEIC", note: "" },
-    { file: "08-13A.HEIC", note: "" },
+    { file: "08-10A.JPG", note: "" },
+    { file: "08-13A.JPG", note: "" },
     { file: "08-22A.JPG", note: "" },
     { file: "08-23A.JPG", note: "" },   // there's also an 08-23A.HEIC — JPG preferred
     { file: "08-23B.JPG", note: "" },
-    { file: "08-23C.JPG", note: "" },
     { file: "08-23D.JPG", note: "" },
     { file: "08-23F.JPG", note: "" },
     { file: "08-23G.JPG", note: "" },
     // ---- September ----
     { file: "09-26A.JPG", note: "" },
     // ---- November ----
-    { file: "11-01A.HEIC", note: "" },
+    { file: "11-01A.JPG", note: "" },
     { file: "11-09A.JPG", note: "" },
     // ---- December ----
     { file: "12-07A.JPG", note: "" },
@@ -121,20 +120,13 @@ window.SCRAPBOOK_CONFIG = {
     { file: "02-14C.JPG", note: "" },
     { file: "02-15A.JPG", note: "" },
     { file: "02-26A.JPG", note: "" },
-    { file: "02-28A.JPG", note: "" },
     { file: "02-28B.JPG", note: "" },
-    { file: "02-28C.JPG", note: "" },
     { file: "02-28D.JPG", note: "" },
     // ---- March ----
     { file: "03-15A.JPG", note: "" },
     { file: "03-15B.JPG", note: "" },
-    { file: "03-15C.JPG", note: "" },
-    { file: "03-15D.JPG", note: "" },
-    { file: "03-15E.JPG", note: "" },
     { file: "03-15G.JPG", note: "" },
     { file: "03-15H.JPG", note: "" },
     { file: "03-15I.JPG", note: "" },
-    // ---- April ----
-    { file: "04-02A.JPG", note: "" },
   ],
 };

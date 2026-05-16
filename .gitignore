@@ -1,0 +1,15 @@
+# --- Local-only stuff that should NOT ship to GitHub Pages -------------------
+
+# Full-resolution originals and backups — kept on disk so you can re-resize
+# any time, but they'd triple the published site size for no benefit.
+originals_backup/
+images/_originals/
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Common editor / OS noise
+.vscode/
+.idea/
+Thumbs.db

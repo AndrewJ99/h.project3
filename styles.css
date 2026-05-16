@@ -31,6 +31,18 @@
   --page-h: calc(var(--page-w) / var(--aspect));
   --book-w: calc(var(--page-w) * 2);
 
+  /* Page-relative font scale — lets headings/notes shrink with the page
+     instead of the viewport, so a narrow phone page never overflows. */
+  --fs-cover-title: clamp(1.35rem, calc(var(--page-w) * 0.14), 4.4rem);
+  --fs-cover-sub:   clamp(0.85rem, calc(var(--page-w) * 0.055), 1.7rem);
+  --fs-cover-year:  clamp(0.68rem, calc(var(--page-w) * 0.034), 1.05rem);
+  --fs-flourish:    clamp(0.95rem, calc(var(--page-w) * 0.07),  2rem);
+  --fs-back-title:  clamp(1rem,    calc(var(--page-w) * 0.085), 2.4rem);
+  --fs-note-mark:   clamp(1.05rem, calc(var(--page-w) * 0.085), 2.4rem);
+  --fs-note-body:   clamp(0.92rem, calc(var(--page-w) * 0.05),  1.45rem);
+  --fs-note-sign:   clamp(0.82rem, calc(var(--page-w) * 0.042), 1.25rem);
+  --fs-open-hint:   clamp(0.62rem, calc(var(--page-w) * 0.028), 0.85rem);
+
   /* Palette — cool blue-grey, sleek. Overridable from photos.js `theme`.      */
   --white:       #ffffff;
   --paper:       #e9edf1;
@@ -144,6 +156,53 @@ body {
 .ctrl-glyph { font-size: 1.05rem; color: var(--accent-deep); }
 
 /* =============================================================================
+   FOOTBAR — hint, restart, page indicator
+   ============================================================================= */
+.footbar {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(0.6rem, 2vw, 1.4rem);
+  padding: 0.5rem clamp(1rem, 4vw, 2.75rem) 1rem;
+}
+.hint {
+  justify-self: start;
+  font-style: italic;
+  font-size: clamp(0.78rem, 1.4vw, 0.95rem);
+  color: var(--ink-soft);
+  opacity: 0.85;
+  transition: opacity 0.5s var(--soft-ease);
+}
+.page-indicator {
+  justify-self: end;
+  font-family: var(--font-heading);
+  font-size: clamp(0.78rem, 1.4vw, 0.95rem);
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+.ctrl--restart {
+  justify-self: center;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.92rem;
+}
+.ctrl--restart .ctrl-glyph {
+  font-size: 1.15rem;
+  display: inline-block;
+  transition: transform 0.4s var(--soft-ease);
+}
+.ctrl--restart:hover .ctrl-glyph { transform: rotate(-180deg); }
+.ctrl--restart:disabled {
+  opacity: 0.35;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+.ctrl--restart:disabled:hover .ctrl-glyph { transform: none; }
+
+/* =============================================================================
    STAGE + NAV ARROWS
    ============================================================================= */
 .stage {
@@ -220,6 +279,8 @@ body {
   transform-style: preserve-3d;
   /* slide-to-centre when the book is closed */
   transition: transform var(--flip-time) var(--flip-ease);
+  /* swipes belong to the book, not to native back-gesture / pull-to-refresh */
+  touch-action: none;
 }
 .book--closed-front { transform: translateX(calc(var(--page-w) / -2)); }
 .book--closed-back  { transform: translateX(calc(var(--page-w) /  2)); }
@@ -472,7 +533,8 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2rem;
+  /* padding scales with the page so the title has room on narrow phones */
+  padding: clamp(0.75rem, calc(var(--page-w) * 0.07), 2rem);
   box-shadow:
     inset 0 0 70px rgba(0,0,0,0.40),
     inset 0 0 0 1px rgba(255,255,255,0.05);
@@ -484,18 +546,19 @@ body {
   background-size: cover;
   background-position: center;
 }
-/* thin frame line on the covers */
+/* thin frame line on the covers — inset scales with the page so it doesn't
+   crowd the title on small phones */
 .page--cover::before,
 .page--back::before {
   content: "";
   position: absolute;
-  inset: clamp(14px, 3vw, 26px);
+  inset: clamp(8px, calc(var(--page-w) * 0.045), 26px);
   border: 1px solid rgba(232, 237, 242, 0.45);
   border-radius: 2px;
   pointer-events: none;
 }
 .cover-flourish {
-  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-size: var(--fs-flourish);
   color: #aebfce;
   letter-spacing: 0.3em;
   margin-bottom: 0.4rem;
@@ -503,36 +566,41 @@ body {
 .cover-title {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: clamp(2.4rem, 7vw, 4.4rem);
+  font-size: var(--fs-cover-title);
   line-height: 1.05;
   color: #eef2f6;
   text-shadow: 0 2px 16px rgba(0,0,0,0.45);
+  /* allow long words like "Anniversary!" to break if the page is very narrow */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 .cover-subtitle {
   font-family: var(--font-heading);
   font-weight: 500;
   font-style: italic;
-  font-size: clamp(1.1rem, 2.6vw, 1.7rem);
+  font-size: var(--fs-cover-sub);
   color: #9fb4c6;
   margin-top: 0.35rem;
 }
 .cover-year {
   margin-top: 1.6rem;
-  font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+  font-size: var(--fs-cover-year);
   letter-spacing: 0.28em;
   color: rgba(232, 237, 242, 0.62);
 }
 .cover-open-hint {
   position: absolute;
-  bottom: clamp(28px, 6vw, 48px);
-  font-size: 0.85rem;
+  bottom: clamp(20px, 5vw, 48px);
+  font-size: var(--fs-open-hint);
   letter-spacing: 0.18em;
   color: rgba(232, 237, 242, 0.5);
   animation: pulse 2.6s var(--soft-ease) infinite;
 }
 @keyframes pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.85; } }
 
-.page--back .cover-title { font-size: clamp(1.6rem, 4vw, 2.4rem); }
+.page--back .cover-title { font-size: var(--fs-back-title); }
 
 /* dedication + closing text pages */
 .page--note {
@@ -541,21 +609,22 @@ body {
   text-align: center;
 }
 .note-mark {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-size: var(--fs-note-mark);
   color: var(--accent);
   margin-bottom: 1rem;
 }
 .note-body {
-  font-size: clamp(1.05rem, 2.2vw, 1.45rem);
+  font-size: var(--fs-note-body);
   font-style: italic;
-  line-height: 1.7;
+  line-height: 1.6;
   color: var(--ink);
   max-width: 30ch;
+  overflow-wrap: break-word;
 }
 .note-sign {
   margin-top: 1.5rem;
   font-family: var(--font-heading);
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-size: var(--fs-note-sign);
   color: var(--accent-deep);
 }
 
@@ -705,6 +774,14 @@ body {
   .topbar { padding-top: 0.8rem; }
   .ctrl-label { display: none; }
   .ctrl { padding: 0.5rem 0.7rem; }
+
+  /* drop the hint on phones and re-balance the two remaining items */
+  .footbar {
+    grid-template-columns: 1fr auto 1fr;
+    padding: 0.4rem 0.8rem 0.7rem;
+  }
+  .hint { display: none; }
+  .ctrl--restart { padding: 0.45rem 0.7rem; }
   /* On phones we hand navigation entirely to swipe/drag — frees up the width
      the arrows were eating so the book itself can be larger. */
   .nav { display: none; }

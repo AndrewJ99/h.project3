@@ -53,6 +53,7 @@
   var layoutBtn   = $("layoutToggle");
   var layoutLabel = $("layoutLabel");
   var layoutGlyph = $("layoutGlyph");
+  var restartBtn  = $("restartBtn");
 
   /* ---------------------------------------------------------------------------
      1.  Photos — parse dates from filenames, sort chronologically
@@ -430,6 +431,7 @@
 
     navPrev.disabled = state.flipped === 0;
     navNext.disabled = state.flipped === leafCount;
+    if (restartBtn) restartBtn.disabled = state.flipped === 0;
 
     updateIndicator();
     updateWindow();
@@ -616,7 +618,7 @@
     // a book that's closed should slide open as you pull the page
     book.classList.remove("book--closed-front", "book--closed-back");
 
-    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerup", onPointerUp);
     window.addEventListener("pointercancel", onPointerUp);
   }
@@ -841,7 +843,10 @@
   function seedAmbient() {
     var host = $("ambient");
     if (!host) return;
-    var COUNT = 14;
+    // Phones run a smaller drift count — fewer constantly-animating layers
+    // means a calmer compositor and noticeably better battery life.
+    var COUNT = IS_MOBILE ? 6 : 14;
+    var frag = document.createDocumentFragment();
     for (var i = 0; i < COUNT; i++) {
       var h = el("span", "heart", "❦");
       h.style.left = (Math.random() * 100).toFixed(2) + "%";
@@ -849,8 +854,9 @@
       h.style.animationDuration = dur.toFixed(1) + "s";
       h.style.animationDelay = (-Math.random() * dur).toFixed(1) + "s";
       h.style.fontSize = (0.7 + Math.random() * 1.4).toFixed(2) + "rem";
-      host.appendChild(h);
+      frag.appendChild(h);
     }
+    host.appendChild(frag);
   }
 
   /* ---------------------------------------------------------------------------
@@ -889,14 +895,18 @@
     document.title = (CONFIG.title || "Our Scrapbook") + " · " + (CONFIG.subtitle || "");
 
     syncLayoutButton();
-    seedAmbient();
     buildBook();
     render();
+    // Defer the drifting hearts so they don't push the book's first paint.
+    var schedule = window.requestIdleCallback ||
+      function (fn) { return setTimeout(fn, 60); };
+    schedule(seedAmbient);
 
     // navigation
     navPrev.addEventListener("click", function () { turnTo(state.flipped - 1); });
     navNext.addEventListener("click", function () { turnTo(state.flipped + 1); });
     layoutBtn.addEventListener("click", toggleLayout);
+    if (restartBtn) restartBtn.addEventListener("click", function () { turnTo(0); });
 
     // dragging + clicking happen on the book
     book.addEventListener("pointerdown", onPointerDown);
